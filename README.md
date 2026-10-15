@@ -79,6 +79,12 @@
                 </div>
             </div>
         </div>
+        <!-- Mobile Navigation bar -->
+        <div class="md:hidden flex border-t border-slate-100 bg-slate-50 px-4 py-2 justify-around text-xs font-semibold text-slate-600">
+            <button onclick="switchView('marketplace')" id="mob-nav-marketplace" class="text-indigo-600 flex items-center gap-1 py-1"><i class="fa-solid fa-store"></i> Explore</button>
+            <button onclick="switchView('dashboard')" id="mob-nav-dashboard" class="flex items-center gap-1 py-1"><i class="fa-solid fa-book-open"></i> My Learning</button>
+            <button onclick="switchView('creator')" id="mob-nav-creator" class="flex items-center gap-1 py-1"><i class="fa-solid fa-wand-magic-sparkles"></i> Creator</button>
+        </div>
     </header>
 
     <!-- Main Content Area -->
@@ -97,7 +103,7 @@
                         Master Coding with Interactive Code Courses
                     </h1>
                     <p class="text-slate-300 text-sm sm:text-base">
-                        Explore standalone HTML/JS programs crafted by expert developers. Buy once, run directly in your secure student sandbox player instantly.
+                        Explore standalone HTML/JS programs crafted by expert developers. Enroll instantly via card or mobile money and run programs directly in your secure student sandbox player.
                     </p>
                     <div class="pt-2 flex flex-wrap gap-3">
                         <button onclick="document.getElementById('course-catalog').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition transform active:scale-95">
@@ -271,13 +277,13 @@
 
     <!-- ================= 4. MODALS (Checkout & Course Player) ================= -->
 
-    <!-- Checkout Modal (Simulated Stripe) -->
+    <!-- Checkout Modal with Support for Credit Card & Mobile Phone / Mobile Money -->
     <div id="modal-checkout" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                    <i class="fa-brands fa-stripe text-3xl"></i>
-                    <span class="font-bold text-lg">Secure Checkout</span>
+                    <i class="fa-solid fa-shield-halved text-2xl"></i>
+                    <span class="font-bold text-lg">Secure Enrollment</span>
                 </div>
                 <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -291,15 +297,25 @@
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <!-- Payment Method Tabs -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Select Payment Method</label>
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-semibold">
+                        <button type="button" onclick="setPaymentMethod('card')" id="pay-tab-card" class="py-2.5 rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-solid fa-credit-card"></i> Card / Stripe</button>
+                        <button type="button" onclick="setPaymentMethod('phone')" id="pay-tab-phone" class="py-2.5 rounded-xl text-slate-600 transition flex items-center justify-center gap-2"><i class="fa-solid fa-mobile-screen-button"></i> Phone / Mobile Money</button>
+                    </div>
+                </div>
+
+                <!-- Card Payment Form -->
+                <div id="payment-panel-card" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Cardholder Name</label>
-                        <input type="text" value="Alex Student" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="card-name" value="Alex Student" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Card Number (Mock Stripe)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Card Number</label>
                         <div class="relative">
-                            <input type="text" value="4242 •••• •••• 4242" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                            <input type="text" id="card-num" value="4242 •••• •••• 4242" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-credit-card"></i></span>
                         </div>
                     </div>
@@ -315,8 +331,29 @@
                     </div>
                 </div>
 
-                <button onclick="processMockStripePayment()" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition transform active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock text-xs"></i> Complete Secure Payment
+                <!-- Phone / Mobile Money Payment Form -->
+                <div id="payment-panel-phone" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Select Mobile Operator</label>
+                        <select id="phone-operator" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium cursor-pointer">
+                            <option value="Telebirr">Telebirr (Mobile Money)</option>
+                            <option value="M-Pesa">M-Pesa</option>
+                            <option value="Chapa Mobile">Chapa Mobile Wallet</option>
+                            <option value="MTN Momo">MTN Mobile Money</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Phone Number for Payment</label>
+                        <div class="relative">
+                            <input type="tel" id="phone-number-input" placeholder="+251 911 223 344" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-phone"></i></span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">A payment USSD prompt or SMS confirmation will be simulated instantly.</p>
+                    </div>
+                </div>
+
+                <button onclick="processPayment()" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock text-xs"></i> Complete Secure Enrollment
                 </button>
             </div>
         </div>
@@ -365,6 +402,10 @@
 
     <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
     <script>
+        // Storage keys for unified persistence across phone and desktop
+        const STORAGE_KEY_COURSES = 'coursecraft_all_courses_v2';
+        const STORAGE_KEY_ENROLLED = 'coursecraft_enrolled_courses_v2';
+
         // Default Mock Courses Catalogue
         const DEFAULT_COURSES = [
             {
@@ -496,44 +537,60 @@
                 image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80',
                 category: 'Canvas & Games',
                 students: 512,
-                creator: 'RetroCoder',
+                creator: 'Retro Pixel Master',
                 htmlCode: `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Canvas Brick Breaker</title>
+    <title>Retro Brick Breaker</title>
     <style>
-        body { background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        body { background: #0f172a; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         canvas { background: #1e293b; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { margin-bottom: 10px; color: #38bdf8; }
+        h1 { margin-bottom: 10px; font-size: 20px; color: #38bdf8; }
     </style>
 </head>
 <body>
-    <h2>Retro Brick Breaker Sandbox</h2>
+    <h1>Arcade Brick Breaker</h1>
     <canvas id="gameCanvas" width="480" height="320"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        let x = canvas.width/2, y = canvas.height-30, dx = 2, dy = -2, ballRadius = 8;
+        let x = canvas.width/2, y = canvas.height-30, dx = 2, dy = -2, ballRadius = 10;
         let paddleHeight = 10, paddleWidth = 75, paddleX = (canvas.width-paddleWidth)/2;
         let rightPressed = false, leftPressed = false;
+        let score = 0;
 
         document.addEventListener("keydown", e => { if(e.key === "Right" || e.key === "ArrowRight") rightPressed = true; else if(e.key === "Left" || e.key === "ArrowLeft") leftPressed = true; });
         document.addEventListener("keyup", e => { if(e.key === "Right" || e.key === "ArrowRight") rightPressed = false; else if(e.key === "Left" || e.key === "ArrowLeft") leftPressed = false; });
+        // Touch controls support for mobile
+        document.addEventListener("touchmove", e => {
+            let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            paddleX = touchX - paddleWidth/2;
+            if(paddleX < 0) paddleX = 0;
+            if(paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
+        });
 
+        function drawBall() {
+            ctx.beginPath(); ctx.arc(x, y, ballRadius, 0, Math.PI*2); ctx.fillStyle = "#38bdf8"; ctx.fill(); ctx.closePath();
+        }
+        function drawPaddle() {
+            ctx.beginPath(); ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight); ctx.fillStyle = "#818cf8"; ctx.fill(); ctx.closePath();
+        }
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath(); ctx.arc(x, y, ballRadius, 0, Math.PI*2); ctx.fillStyle = "#38bdf8"; ctx.fill(); ctx.closePath();
-            ctx.beginPath(); ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight); ctx.fillStyle = "#6366f1"; ctx.fill(); ctx.closePath();
+            drawBall(); drawPaddle();
+            ctx.fillStyle = "#fff"; ctx.font = "14px sans-serif"; ctx.fillText("Score: " + score, 20, 20);
 
             if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) dx = -dx;
             if(y + dy < ballRadius) dy = -dy;
             else if(y + dy > canvas.height-ballRadius) {
-                if(x > paddleX && x < paddleX + paddleWidth) dy = -dy;
+                if(x > paddleX && x < paddleX + paddleWidth) { dy = -dy; score++; }
                 else { document.location.reload(); }
             }
-            if(rightPressed && paddleX < canvas.width-paddleWidth) paddleX += 5;
-            else if(leftPressed && paddleX > 0) paddleX -= 5;
+
+            if(rightPressed && paddleX < canvas.width-paddleWidth) paddleX += 7;
+            else if(leftPressed && paddleX > 0) paddleX -= 7;
+
             x += dx; y += dy;
             requestAnimationFrame(draw);
         }
@@ -544,142 +601,149 @@
             }
         ];
 
-        // State Management with robust LocalStorage persistence
-        let courses = JSON.parse(localStorage.getItem('coursecraft_courses')) || DEFAULT_COURSES;
-        let enrolledIds = JSON.parse(localStorage.getItem('coursecraft_enrolled')) || ['c1'];
+        // Application State
         let currentUserRole = 'student';
-        let currentCheckoutCourseId = null;
-        let activePlayerCourseId = null;
-        let ingestMode = 'zip';
+        let currentActiveView = 'marketplace';
+        let allCourses = [];
+        let enrolledCourseIds = [];
+        let selectedCourseForCheckout = null;
+        let selectedPaymentMethod = 'card';
+        let pendingZipData = null;
 
-        // Initialize App on load
-        window.onload = function() {
-            saveState();
+        // Initialize application on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStoredData();
             renderMarketplace();
             renderDashboard();
             renderCreatorTable();
-        };
+        });
 
-        function saveState() {
-            localStorage.setItem('coursecraft_courses', JSON.stringify(courses));
-            localStorage.setItem('coursecraft_enrolled', JSON.stringify(enrolledIds));
-        }
+        // Load & Save Storage helpers
+        function loadStoredData() {
+            try {
+                const storedCourses = localStorage.getItem(STORAGE_KEY_COURSES);
+                if (storedCourses) {
+                    allCourses = JSON.parse(storedCourses);
+                } else {
+                    allCourses = DEFAULT_COURSES;
+                    localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(allCourses));
+                }
 
-        // Toast Notification Helper
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `px-4 py-3 rounded-2xl shadow-xl text-white text-sm font-semibold flex items-center gap-2 transform transition-all translate-y-2 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-indigo-600'}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-info-circle'}"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        // Custom Modal helper (replacing alert/confirm)
-        function showCustomModal(title, text, callback = null) {
-            document.getElementById('custom-modal-title').innerText = title;
-            document.getElementById('custom-modal-text').innerText = text;
-            const actions = document.getElementById('custom-modal-actions');
-            
-            if(callback) {
-                actions.innerHTML = `
-                    <button onclick="closeCustomModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">Cancel</button>
-                    <button id="custom-modal-btn-confirm" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition">Confirm</button>
-                `;
-                document.getElementById('custom-modal-btn-confirm').onclick = () => {
-                    closeCustomModal();
-                    callback();
-                };
-            } else {
-                actions.innerHTML = `<button onclick="closeCustomModal()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition">OK</button>`;
+                const storedEnrolled = localStorage.getItem(STORAGE_KEY_ENROLLED);
+                if (storedEnrolled) {
+                    enrolledCourseIds = JSON.parse(storedEnrolled);
+                } else {
+                    // Default enroll in first course for instant trial
+                    enrolledCourseIds = ['c1'];
+                    localStorage.setItem(STORAGE_KEY_ENROLLED, JSON.stringify(enrolledCourseIds));
+                }
+            } catch (e) {
+                console.error("Storage error:", e);
+                allCourses = DEFAULT_COURSES;
+                enrolledCourseIds = ['c1'];
             }
-            document.getElementById('custom-modal').classList.remove('hidden');
         }
 
-        function closeCustomModal() {
-            document.getElementById('custom-modal').classList.add('hidden');
+        function saveAllData() {
+            localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(allCourses));
+            localStorage.setItem(STORAGE_KEY_ENROLLED, JSON.stringify(enrolledCourseIds));
         }
 
-        // View Navigation Switcher
+        // View Switcher
         function switchView(viewName) {
+            currentActiveView = viewName;
             ['marketplace', 'dashboard', 'creator'].forEach(v => {
-                const viewEl = document.getElementById(`view-${v}`);
-                if(viewEl) viewEl.classList.add('hidden');
-                const navBtn = document.getElementById(`nav-${v}`);
-                if(navBtn) {
+                const el = document.getElementById('view-' + v);
+                if (el) el.classList.add('hidden');
+                const navBtn = document.getElementById('nav-' + v);
+                if (navBtn) {
                     navBtn.classList.remove('border-indigo-600', 'text-indigo-600', 'font-semibold');
                     navBtn.classList.add('border-transparent');
                 }
             });
 
-            const targetView = document.getElementById(`view-${viewName}`);
-            if(targetView) targetView.classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${viewName}`);
-            if(activeNav) {
+            const targetView = document.getElementById('view-' + viewName);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const activeNav = document.getElementById('nav-' + viewName);
+            if (activeNav) {
                 activeNav.classList.remove('border-transparent');
                 activeNav.classList.add('border-indigo-600', 'text-indigo-600', 'font-semibold');
             }
+
+            if (viewName === 'marketplace') renderMarketplace();
+            if (viewName === 'dashboard') renderDashboard();
+            if (viewName === 'creator') renderCreatorTable();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Role Switcher
+        // Role Selector
         function changeUserRole(role) {
             currentUserRole = role;
-            const avatar = document.getElementById('user-avatar-initials');
-            if(role === 'creator') avatar.innerText = 'CR';
-            else if(role === 'admin') avatar.innerText = 'AD';
-            else avatar.innerText = 'JS';
-            showToast(`Switched active role to: ${role.toUpperCase()}`, 'info');
+            showToast('Switched role to ' + role.toUpperCase(), 'info');
         }
 
-        // ================= RENDER MARKETPLACE =================
+        // Render Marketplace Course Cards
         function renderMarketplace() {
             const grid = document.getElementById('course-grid');
-            if(!grid) return;
-            const searchInput = document.getElementById('marketplace-search');
-            const sortSelect = document.getElementById('marketplace-sort');
-            const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
-            const sortBy = sortSelect ? sortSelect.value : 'popular';
+            if (!grid) return;
 
-            let filtered = courses.filter(c => c.title.toLowerCase().includes(searchQuery) || c.desc.toLowerCase().includes(searchQuery) || c.category.toLowerCase().includes(searchQuery));
+            const searchQuery = (document.getElementById('marketplace-search')?.value || '').toLowerCase();
+            const sortBy = document.getElementById('marketplace-sort')?.value || 'popular';
 
-            if(sortBy === 'price-low') filtered.sort((a,b) => a.price - b.price);
-            else if(sortBy === 'price-high') filtered.sort((a,b) => b.price - a.price);
-            else filtered.sort((a,b) => b.students - a.students);
+            let filtered = allCourses.filter(c => 
+                c.title.toLowerCase().includes(searchQuery) || 
+                c.desc.toLowerCase().includes(searchQuery) ||
+                c.category.toLowerCase().includes(searchQuery)
+            );
 
-            if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">No courses found matching your query.</div>`;
+            if (sortBy === 'popular') {
+                filtered.sort((a, b) => (b.students || 0) - (a.students || 0));
+            } else if (sortBy === 'price-low') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'price-high') {
+                filtered.sort((a, b) => b.price - a.price);
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400"><i class="fa-solid fa-folder-open text-4xl mb-3"></i><p>No courses found matching your query.</p></div>`;
                 return;
             }
 
             grid.innerHTML = filtered.map(course => {
-                const isEnrolled = enrolledIds.includes(course.id);
+                const isEnrolled = enrolledCourseIds.includes(course.id);
+                const priceFormatted = course.price === 0 ? 'Free' : '$' + course.price.toFixed(2);
                 return `
-                    <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition flex flex-col justify-between group">
-                        <div>
-                            <div class="relative h-48 overflow-hidden bg-slate-100">
-                                <img src="${course.image || 'https://placehold.co/600x400/6366f1/ffffff?text=CourseCraft'}" alt="${course.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur text-indigo-700 shadow-sm">${course.category}</span>
-                            </div>
-                            <div class="p-6 space-y-3">
-                                <div class="flex justify-between items-center text-xs text-slate-400">
-                                    <span><i class="fa-solid fa-user-pen mr-1"></i> ${course.creator || 'Instructor'}</span>
-                                    <span><i class="fa-solid fa-users mr-1"></i> ${course.students} enrolled</span>
-                                </div>
-                                <h3 class="font-bold text-slate-900 text-base line-clamp-1">${course.title}</h3>
-                                <p class="text-xs text-slate-500 line-clamp-2">${course.desc}</p>
-                            </div>
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition flex flex-col group">
+                        <div class="relative h-48 overflow-hidden bg-slate-100">
+                            <img src="${course.image || 'https://placehold.co/600x400/6366f1/ffffff?text=Course'}" alt="${course.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x400/6366f1/ffffff?text=Course'">
+                            <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                                ${course.category}
+                            </span>
+                            <span class="absolute top-3 right-3 bg-white text-slate-900 font-extrabold text-sm px-3 py-1 rounded-full shadow-md">
+                                ${priceFormatted}
+                            </span>
                         </div>
-                        <div class="p-6 pt-0 flex items-center justify-between mt-4">
-                            <span class="text-xl font-extrabold text-slate-900">$${course.price.toFixed(2)}</span>
-                            ${isEnrolled ? 
-                                `<button onclick="openCoursePlayer('${course.id}')" class="px-5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs transition flex items-center gap-1.5"><i class="fa-solid fa-play"></i> Launch Course</button>` :
-                                `<button onclick="openCheckoutModal('${course.id}')" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition transform active:scale-95 flex items-center gap-1.5"><i class="fa-solid fa-cart-shopping"></i> Buy Now</button>`
-                            }
+                        <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-xs text-slate-400 font-medium">
+                                    <span><i class="fa-solid fa-user-graduate mr-1"></i> ${course.students || 120} students</span>
+                                    <span><i class="fa-solid fa-chalkboard-user mr-1"></i> ${course.creator || 'Instructor'}</span>
+                                </div>
+                                <h3 class="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-indigo-600 transition">${course.title}</h3>
+                                <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">${course.desc}</p>
+                            </div>
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+                                ${isEnrolled ? `
+                                    <button onclick="launchCoursePlayer('${course.id}')" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-play"></i> Launch Sandbox
+                                    </button>
+                                ` : `
+                                    <button onclick="initiateEnrollment('${course.id}')" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/20">
+                                        <i class="fa-solid fa-cart-shopping"></i> Enroll / Buy Now
+                                    </button>
+                                `}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -690,133 +754,193 @@
             renderMarketplace();
         }
 
-        // ================= CHECKOUT & PURCHASE SIMULATION =================
-        function openCheckoutModal(courseId) {
-            currentCheckoutCourseId = courseId;
-            const course = courses.find(c => c.id === courseId);
-            if(!course) return;
-
-            document.getElementById('checkout-modal-title').innerText = course.title;
-            document.getElementById('checkout-modal-price').innerText = `$${course.price.toFixed(2)}`;
-            document.getElementById('checkout-modal-img').src = course.image || 'https://placehold.co/80x80/6366f1/ffffff?text=Course';
-            
-            document.getElementById('modal-checkout').classList.remove('hidden');
-        }
-
-        function closeCheckoutModal() {
-            document.getElementById('modal-checkout').classList.add('hidden');
-            currentCheckoutCourseId = null;
-        }
-
-        function processMockStripePayment() {
-            if(!currentCheckoutCourseId) return;
-            
-            if(!enrolledIds.includes(currentCheckoutCourseId)) {
-                enrolledIds.push(currentCheckoutCourseId);
-                const course = courses.find(c => c.id === currentCheckoutCourseId);
-                if(course) course.students += 1;
-                saveState();
-            }
-
-            closeCheckoutModal();
-            showToast('Payment successful! Course added to My Learning dashboard.');
-            renderMarketplace();
-            renderDashboard();
-            renderCreatorTable();
-            openCoursePlayer(currentCheckoutCourseId);
-        }
-
-        // ================= STUDENT LEARNING DASHBOARD =================
+        // Render Student Dashboard
         function renderDashboard() {
             const grid = document.getElementById('enrolled-course-grid');
-            if(!grid) return;
-            const enrolledList = courses.filter(c => enrolledIds.includes(c.id));
+            const countBadge = document.getElementById('stats-enrolled-count');
+            if (!grid) return;
 
-            const countEl = document.getElementById('stats-enrolled-count');
-            if(countEl) countEl.innerText = `${enrolledList.length} Enrolled`;
+            const enrolled = allCourses.filter(c => enrolledCourseIds.includes(c.id));
+            if (countBadge) countBadge.textContent = enrolled.length + ' Enrolled';
 
-            if(enrolledList.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">You haven't enrolled in any courses yet. Explore the marketplace!</div>`;
+            if (enrolled.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center space-y-4 bg-white rounded-3xl border border-slate-200">
+                        <div class="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800">No Enrolled Courses Yet</h3>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Explore our catalog of interactive HTML, Three.js, and D3 courses and start learning today!</p>
+                        <button onclick="switchView('marketplace')" class="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md">Explore Catalog</button>
+                    </div>
+                `;
                 return;
             }
 
-            grid.innerHTML = enrolledList.map(course => `
-                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition flex flex-col justify-between group">
-                    <div>
-                        <div class="relative h-44 overflow-hidden bg-slate-100">
-                            <img src="${course.image || 'https://placehold.co/600x400/6366f1/ffffff?text=CourseCraft'}" alt="${course.title}" class="w-full h-full object-cover">
-                            <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-sm"><i class="fa-solid fa-circle-check mr-1"></i> Enrolled</span>
-                        </div>
-                        <div class="p-6 space-y-2">
+            grid.innerHTML = enrolled.map(course => `
+                <div class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition flex flex-col">
+                    <div class="relative h-40 overflow-hidden bg-slate-100">
+                        <img src="${course.image || 'https://placehold.co/600x400/6366f1/ffffff?text=Course'}" alt="${course.title}" class="w-full h-full object-cover">
+                        <span class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
+                            Enrolled & Active
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
                             <h3 class="font-bold text-slate-900 text-base line-clamp-1">${course.title}</h3>
                             <p class="text-xs text-slate-500 line-clamp-2">${course.desc}</p>
                         </div>
-                    </div>
-                    <div class="p-6 pt-0 mt-4">
-                        <button onclick="openCoursePlayer('${course.id}')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i> Open Interactive Sandbox
-                        </button>
+                        <div class="pt-2 border-t border-slate-100">
+                            <button onclick="launchCoursePlayer('${course.id}')" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30">
+                                <i class="fa-solid fa-play"></i> Run Sandbox Player
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // ================= SANDBOXED COURSE PLAYER =================
-        function openCoursePlayer(courseId) {
-            const course = courses.find(c => c.id === courseId);
-            if(!course) return;
+        // Enrollment & Checkout Flow
+        function initiateEnrollment(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
 
-            activePlayerCourseId = courseId;
-            document.getElementById('player-course-title').innerText = course.title;
-            document.getElementById('player-code-textarea').value = course.htmlCode || '<!-- No source code available -->';
+            // If free, enroll instantly
+            if (course.price === 0) {
+                if (!enrolledCourseIds.includes(courseId)) {
+                    enrolledCourseIds.push(courseId);
+                    course.students = (course.students || 0) + 1;
+                    saveAllData();
+                    showToast('Successfully enrolled in ' + course.title + '!', 'success');
+                    renderMarketplace();
+                    renderDashboard();
+                } else {
+                    showCustomModal('Already Enrolled', 'You already have access to this course.');
+                }
+                return;
+            }
 
-            // Inject into sandboxed iframe safely
+            // Open secure checkout modal
+            selectedCourseForCheckout = course;
+            document.getElementById('checkout-modal-title').textContent = course.title;
+            document.getElementById('checkout-modal-price').textContent = '$' + course.price.toFixed(2);
+            document.getElementById('checkout-modal-img').src = course.image || 'https://placehold.co/80x80/6366f1/ffffff?text=Course';
+            
+            // Reset modal inputs
+            setPaymentMethod('card');
+            document.getElementById('modal-checkout').classList.remove('hidden');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('modal-checkout').classList.add('hidden');
+            selectedCourseForCheckout = null;
+        }
+
+        function setPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            const btnCard = document.getElementById('pay-tab-card');
+            const btnPhone = document.getElementById('pay-tab-phone');
+            const panelCard = document.getElementById('payment-panel-card');
+            const panelPhone = document.getElementById('payment-panel-phone');
+
+            if (method === 'card') {
+                btnCard.className = 'py-2.5 rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center justify-center gap-2 font-semibold';
+                btnPhone.className = 'py-2.5 rounded-xl text-slate-600 transition flex items-center justify-center gap-2 font-semibold';
+                panelCard.classList.remove('hidden');
+                panelPhone.classList.add('hidden');
+            } else {
+                btnPhone.className = 'py-2.5 rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center justify-center gap-2 font-semibold';
+                btnCard.className = 'py-2.5 rounded-xl text-slate-600 transition flex items-center justify-center gap-2 font-semibold';
+                panelPhone.classList.remove('hidden');
+                panelCard.classList.add('hidden');
+            }
+        }
+
+        function processPayment() {
+            if (!selectedCourseForCheckout) return;
+
+            if (selectedPaymentMethod === 'phone') {
+                const phoneInput = document.getElementById('phone-number-input').value.trim();
+                const operator = document.getElementById('phone-operator').value;
+                if (!phoneInput) {
+                    showCustomModal('Phone Required', 'Please enter a valid phone number for mobile money payment.');
+                    return;
+                }
+                showToast(`Sending USSD prompt to ${operator} (${phoneInput})...`, 'info');
+            }
+
+            // Complete enrollment success simulation
+            setTimeout(() => {
+                const courseId = selectedCourseForCheckout.id;
+                if (!enrolledCourseIds.includes(courseId)) {
+                    enrolledCourseIds.push(courseId);
+                    selectedCourseForCheckout.students = (selectedCourseForCheckout.students || 0) + 1;
+                    saveAllData();
+                }
+                closeCheckoutModal();
+                showToast(`Payment successful! Enrolled in ${selectedCourseForCheckout.title}`, 'success');
+                renderMarketplace();
+                renderDashboard();
+                renderCreatorTable();
+            }, 1000);
+        }
+
+        // Sandboxed Course Player
+        function launchCoursePlayer(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
+
+            document.getElementById('player-course-title').textContent = course.title;
+            document.getElementById('player-code-textarea').value = course.htmlCode || '<!-- No code available -->';
+
             const iframe = document.getElementById('sandbox-iframe');
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(course.htmlCode || '<html><body><h3>No content</h3></body></html>');
-            doc.close();
+            iframe.srcdoc = course.htmlCode || '<html><body><h3>No content</h3></body></html>';
 
             document.getElementById('modal-player').classList.remove('hidden');
         }
 
         function closeCoursePlayer() {
             document.getElementById('modal-player').classList.add('hidden');
-            activePlayerCourseId = null;
-            // Clear iframe content
             const iframe = document.getElementById('sandbox-iframe');
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open(); doc.write(''); doc.close();
+            iframe.srcdoc = '';
         }
 
         function togglePlayerCodeView() {
             const inspector = document.getElementById('player-code-inspector');
-            inspector.classList.toggle('hidden');
+            const btn = document.getElementById('btn-toggle-code');
+            if (inspector.classList.contains('hidden')) {
+                inspector.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i> Hide Code';
+                btn.classList.add('bg-indigo-600', 'text-white');
+            } else {
+                inspector.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-code"></i> Inspect HTML Code';
+                btn.classList.remove('bg-indigo-600', 'text-white');
+            }
         }
 
         function copyPlayerCode() {
-            const textarea = document.getElementById('player-code-textarea');
-            textarea.select();
+            const codeArea = document.getElementById('player-code-textarea');
+            codeArea.select();
             document.execCommand('copy');
-            showToast('Source code copied to clipboard!');
+            showToast('HTML code copied to clipboard!', 'success');
         }
 
-        // ================= CREATOR HUB & UPLOAD =================
-        function setIngestTab(mode) {
-            ingestMode = mode;
+        // Creator Hub Upload & Management
+        function setIngestTab(tab) {
             const btnZip = document.getElementById('tab-btn-zip');
             const btnCode = document.getElementById('tab-btn-code');
             const panelZip = document.getElementById('ingest-panel-zip');
             const panelCode = document.getElementById('ingest-panel-code');
 
-            if(mode === 'zip') {
-                btnZip.className = "px-3 py-1.5 rounded-lg bg-white shadow text-indigo-600 transition";
-                btnCode.className = "px-3 py-1.5 rounded-lg text-slate-600 transition";
+            if (tab === 'zip') {
+                btnZip.className = 'px-3 py-1.5 rounded-lg bg-white shadow text-indigo-600 transition font-semibold';
+                btnCode.className = 'px-3 py-1.5 rounded-lg text-slate-600 transition font-medium';
                 panelZip.classList.remove('hidden');
                 panelCode.classList.add('hidden');
             } else {
-                btnCode.className = "px-3 py-1.5 rounded-lg bg-white shadow text-indigo-600 transition";
-                btnZip.className = "px-3 py-1.5 rounded-lg text-slate-600 transition";
+                btnCode.className = 'px-3 py-1.5 rounded-lg bg-white shadow text-indigo-600 transition font-semibold';
+                btnZip.className = 'px-3 py-1.5 rounded-lg text-slate-600 transition font-medium';
                 panelCode.classList.remove('hidden');
                 panelZip.classList.add('hidden');
             }
@@ -824,16 +948,51 @@
 
         function handleZipUpload(event) {
             const file = event.target.files[0];
-            if(file) {
-                document.getElementById('zip-file-name').innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ${file.name} (Zip parsed successfully)`;
+            if (file) {
+                pendingZipData = file.name;
+                document.getElementById('zip-file-name').innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ${file.name} loaded successfully`;
                 document.getElementById('zip-uploaded-info').classList.remove('hidden');
-                showToast('Mock .zip bundle unzipped & validated!');
+                showToast('Course zip package simulated successfully!', 'success');
             }
         }
 
         function clearZipUpload() {
+            pendingZipData = null;
             document.getElementById('mock-zip-file').value = '';
             document.getElementById('zip-uploaded-info').classList.add('hidden');
+        }
+
+        function handlePublishCourse(e) {
+            e.preventDefault();
+            const title = document.getElementById('form-title').value.trim();
+            const price = parseFloat(document.getElementById('form-price').value) || 0;
+            const desc = document.getElementById('form-desc').value.trim();
+            const image = document.getElementById('form-image').value.trim() || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80';
+            const category = document.getElementById('form-category').value;
+            const rawCode = document.getElementById('form-html-code').value.trim();
+
+            let finalHtml = rawCode;
+            if (!finalHtml) {
+                finalHtml = `<!DOCTYPE html><html><head><title>${title}</title><style>body { font-family: sans-serif; background: #0f172a; color: #fff; text-align: center; padding-top: 60px; }</style></head><body><h1>${title}</h1><p>${desc}</p></body></html>`;
+            }
+
+            const newCourse = {
+                id: 'course_' + Date.now(),
+                title,
+                desc,
+                price,
+                image,
+                category,
+                students: 0,
+                creator: currentUserRole === 'creator' ? 'Instructor (You)' : 'CourseCraft Creator',
+                htmlCode: finalHtml
+            };
+
+            allCourses.unshift(newCourse);
+            saveAllData();
+            showToast('Course published successfully!', 'success');
+            resetCreatorForm();
+            switchView('marketplace');
         }
 
         function resetCreatorForm() {
@@ -841,100 +1000,76 @@
             clearZipUpload();
         }
 
-        function handlePublishCourse(event) {
-            event.preventDefault();
-            const title = document.getElementById('form-title').value;
-            const price = parseFloat(document.getElementById('form-price').value);
-            const desc = document.getElementById('form-desc').value;
-            const image = document.getElementById('form-image').value || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80';
-            const category = document.getElementById('form-category').value;
-
-            let htmlCode = '';
-            if(ingestMode === 'code') {
-                htmlCode = document.getElementById('form-html-code').value;
-            } else {
-                htmlCode = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>${title}</title>
-    <style>
-        body { font-family: sans-serif; background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .box { background: rgba(255,255,255,0.05); padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); max-width: 500px; }
-        h1 { color: #818cf8; margin-top: 0; }
-        button { background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        button:hover { background: #4f46e5; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h1>${title}</h1>
-        <p>${desc}</p>
-        <button onclick="alert('Interactive script working in sandbox!')">Test Course Script</button>
-    </div>
-</body>
-</html>`;
-            }
-
-            const newCourse = {
-                id: 'c_' + Date.now(),
-                title,
-                desc,
-                price,
-                image,
-                category,
-                students: 0,
-                creator: currentUserRole === 'creator' ? 'Pro Instructor' : 'CourseCraft Creator',
-                htmlCode
-            };
-
-            courses.unshift(newCourse);
-            enrolledIds.push(newCourse.id);
-            saveState();
-
-            showToast('Course successfully published & listed on marketplace!');
-            resetCreatorForm();
-            renderMarketplace();
-            renderDashboard();
-            renderCreatorTable();
-            switchView('marketplace');
-        }
-
         function renderCreatorTable() {
             const tbody = document.getElementById('creator-courses-table');
-            if(!tbody) return;
-            if(courses.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No courses published yet.</td></tr>`;
+            if (!tbody) return;
+
+            if (allCourses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No published courses yet.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = courses.map(course => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="py-3 px-4 font-semibold text-slate-800 flex items-center gap-3">
-                        <img src="${course.image || 'https://placehold.co/40x40'}" class="w-10 h-10 rounded-lg object-cover">
-                        <span class="line-clamp-1">${course.title}</span>
-                    </td>
-                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">${course.category}</span></td>
-                    <td class="py-3 px-4 font-bold text-slate-900">$${course.price.toFixed(2)}</td>
-                    <td class="py-3 px-4 font-medium text-indigo-600">${course.students} students</td>
-                    <td class="py-3 px-4 font-extrabold text-emerald-600">$${(course.students * course.price).toFixed(2)}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="openCoursePlayer('${course.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition">Preview</button>
-                        <button onclick="confirmDeleteCourse('${course.id}')" class="ml-1 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = allCourses.map(course => {
+                const revenue = (course.students || 0) * course.price;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-3">
+                            <img src="${course.image || ''}" class="w-10 h-10 rounded-xl object-cover" onerror="this.src='https://placehold.co/40x40/6366f1/ffffff?text=C'">
+                            <span class="line-clamp-1">${course.title}</span>
+                        </td>
+                        <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">${course.category}</span></td>
+                        <td class="py-3 px-4 font-semibold text-slate-900">$${course.price.toFixed(2)}</td>
+                        <td class="py-3 px-4">${course.students || 0} students</td>
+                        <td class="py-3 px-4 font-bold text-emerald-600">$${revenue.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="launchCoursePlayer('${course.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold mr-1 transition"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="deleteCourse('${course.id}')" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function confirmDeleteCourse(courseId) {
-            showCustomModal("Delete Course", "Are you sure you want to permanently delete this course?", () => {
-                courses = courses.filter(c => c.id !== courseId);
-                saveState();
-                showToast('Course removed successfully.', 'info');
-                renderMarketplace();
-                renderDashboard();
-                renderCreatorTable();
-            });
+        function deleteCourse(id) {
+            allCourses = allCourses.filter(c => c.id !== id);
+            saveAllData();
+            showToast('Course deleted successfully.', 'info');
+            renderMarketplace();
+            renderDashboard();
+            renderCreatorTable();
+        }
+
+        // Custom Notification Toast & Modal Helpers
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : (type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white');
+            const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info');
+
+            toast.className = `${bgClass} px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showCustomModal(title, text) {
+            document.getElementById('custom-modal-title').textContent = title;
+            document.getElementById('custom-modal-text').textContent = text;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
         }
     </script>
 </body>
