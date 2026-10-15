@@ -27,7 +27,21 @@
 <body class="h-full bg-slate-50 text-slate-800 font-sans flex flex-col antialiased">
 
     <!-- Global Notification Banner / Toast Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Custom Modal for Alerts/Confirmations (Avoiding window.alert/confirm) -->
+    <div id="custom-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl border border-slate-100 p-6 space-y-4 text-center">
+            <div id="custom-modal-icon" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto text-xl font-bold">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 id="custom-modal-title" class="font-bold text-lg text-slate-900">Notice</h3>
+            <p id="custom-modal-text" class="text-sm text-slate-600"></p>
+            <div id="custom-modal-actions" class="flex gap-2 justify-center pt-2">
+                <button id="custom-modal-btn-ok" onclick="closeCustomModal()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition">OK</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Top Navigation Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
@@ -45,7 +59,7 @@
 
             <!-- Navigation Links -->
             <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-                <button onclick="switchView('marketplace')" id="nav-marketplace" class="hover:text-indigo-600 transition py-2 border-b-2 border-indigo-600 text-indigo-600">Explore Courses</button>
+                <button onclick="switchView('marketplace')" id="nav-marketplace" class="hover:text-indigo-600 transition py-2 border-b-2 border-indigo-600 text-indigo-600 font-semibold">Explore Courses</button>
                 <button onclick="switchView('dashboard')" id="nav-dashboard" class="hover:text-indigo-600 transition py-2 border-b-2 border-transparent">My Learning</button>
                 <button onclick="switchView('creator')" id="nav-creator" class="hover:text-indigo-600 transition py-2 border-b-2 border-transparent">Creator Hub</button>
             </nav>
@@ -54,7 +68,7 @@
             <div class="flex items-center gap-3">
                 <div class="bg-slate-100 p-1 rounded-xl flex items-center text-xs font-semibold">
                     <span class="px-2 text-slate-400 hidden sm:inline"><i class="fa-solid fa-user-gear mr-1"></i> Role:</span>
-                    <select id="role-selector" onchange="changeUserRole(this.value)" class="bg-white border border-slate-200 text-slate-700 py-1 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <select id="role-selector" onchange="changeUserRole(this.value)" class="bg-white border border-slate-200 text-slate-700 py-1 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer">
                         <option value="student">Student</option>
                         <option value="creator">Creator / Instructor</option>
                         <option value="admin">Administrator</option>
@@ -97,7 +111,7 @@
             </div>
 
             <!-- Filter & Search Bar -->
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div id="course-catalog" class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                 <div class="relative w-full sm:w-96">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -106,7 +120,7 @@
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <span class="text-xs text-slate-500 font-medium">Sort By:</span>
-                    <select id="marketplace-sort" onchange="filterCourses()" class="bg-slate-50 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="marketplace-sort" onchange="filterCourses()" class="bg-slate-50 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
                         <option value="popular">Most Popular</option>
                         <option value="price-low">Price: Low to High</option>
                         <option value="price-high">Price: High to Low</option>
@@ -180,7 +194,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Category / Tag</label>
-                            <select id="form-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <select id="form-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white cursor-pointer">
                                 <option value="Canvas & Games">Canvas & Games</option>
                                 <option value="Data Viz & D3">Data Viz & D3</option>
                                 <option value="Web Apps & Tools">Web Apps & Tools</option>
@@ -216,7 +230,7 @@
                         <!-- Raw HTML Code Panel -->
                         <div id="ingest-panel-code" class="hidden space-y-3">
                             <p class="text-xs text-slate-500">Paste self-contained HTML code including CSS and JavaScript tags below:</p>
-                            <textarea id="form-html-code" rows="10" placeholder="<!DOCTYPE html>&#10;<html>&#10;<head><style>body { background: #111; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; }</style></head>&#10;<body>&#10;  <h1>My Interactive Course</h1>&#10;  <button onclick='alert(\'Hello!\')'>Click Me</button>&#10;</body>&#10;</html>" class="w-full font-mono text-xs p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            <textarea id="form-html-code" rows="10" placeholder="<!DOCTYPE html>&#10;<html>&#10;<head><style>body { background: #111; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; }</style></head>&#10;<body>&#10;  <h1>My Interactive Course</h1>&#10;  <button onclick='customAlert(\'Hello!\')'>Click Me</button>&#10;</body>&#10;</html>" class="w-full font-mono text-xs p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                         </div>
                     </div>
 
@@ -373,7 +387,7 @@
         h1 { margin: 0 0 5px 0; font-size: 18px; color: #818cf8; }
         p { margin: 0; font-size: 12px; color: #94a3b8; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>
 </head>
 <body>
     <div id="info">
@@ -420,7 +434,7 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-    <\/script>
+    <\\/script>
 </body>
 </html>`
             },
@@ -438,7 +452,7 @@
 <head>
     <meta charset="UTF-8">
     <title>D3.js Bar Chart Masterclass</title>
-    <script src="https://d3js.org/d3.v7.min.js"><script>
+    <script src="https://d3js.org/d3.v7.min.js"><\\/script>
     <style>
         body { font-family: sans-serif; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
@@ -470,7 +484,7 @@
             .attr("y", d => height - d * 0.6)
             .attr("width", barWidth - 10)
             .attr("height", d => d * 0.6);
-    <\/script>
+    <\\/script>
 </body>
 </html>`
             },
@@ -524,15 +538,15 @@
             requestAnimationFrame(draw);
         }
         draw();
-    <\/script>
+    <\\/script>
 </body>
 </html>`
             }
         ];
 
-        // State Management with LocalStorage persistence
+        // State Management with robust LocalStorage persistence
         let courses = JSON.parse(localStorage.getItem('coursecraft_courses')) || DEFAULT_COURSES;
-        let enrolledIds = JSON.parse(localStorage.getItem('coursecraft_enrolled')) || ['c1']; // User starts with c1 enrolled
+        let enrolledIds = JSON.parse(localStorage.getItem('coursecraft_enrolled')) || ['c1'];
         let currentUserRole = 'student';
         let currentCheckoutCourseId = null;
         let activePlayerCourseId = null;
@@ -565,22 +579,49 @@
             }, 3500);
         }
 
+        // Custom Modal helper (replacing alert/confirm)
+        function showCustomModal(title, text, callback = null) {
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-text').innerText = text;
+            const actions = document.getElementById('custom-modal-actions');
+            
+            if(callback) {
+                actions.innerHTML = `
+                    <button onclick="closeCustomModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">Cancel</button>
+                    <button id="custom-modal-btn-confirm" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition">Confirm</button>
+                `;
+                document.getElementById('custom-modal-btn-confirm').onclick = () => {
+                    closeCustomModal();
+                    callback();
+                };
+            } else {
+                actions.innerHTML = `<button onclick="closeCustomModal()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition">OK</button>`;
+            }
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
         // View Navigation Switcher
         function switchView(viewName) {
             ['marketplace', 'dashboard', 'creator'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
+                const viewEl = document.getElementById(`view-${v}`);
+                if(viewEl) viewEl.classList.add('hidden');
                 const navBtn = document.getElementById(`nav-${v}`);
                 if(navBtn) {
-                    navBtn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    navBtn.classList.remove('border-indigo-600', 'text-indigo-600', 'font-semibold');
                     navBtn.classList.add('border-transparent');
                 }
             });
 
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const targetView = document.getElementById(`view-${viewName}`);
+            if(targetView) targetView.classList.remove('hidden');
             const activeNav = document.getElementById(`nav-${viewName}`);
             if(activeNav) {
                 activeNav.classList.remove('border-transparent');
-                activeNav.classList.add('border-indigo-600', 'text-indigo-600');
+                activeNav.classList.add('border-indigo-600', 'text-indigo-600', 'font-semibold');
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -598,8 +639,11 @@
         // ================= RENDER MARKETPLACE =================
         function renderMarketplace() {
             const grid = document.getElementById('course-grid');
-            const searchQuery = document.getElementById('marketplace-search').value.toLowerCase();
-            const sortBy = document.getElementById('marketplace-sort').value;
+            if(!grid) return;
+            const searchInput = document.getElementById('marketplace-search');
+            const sortSelect = document.getElementById('marketplace-sort');
+            const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+            const sortBy = sortSelect ? sortSelect.value : 'popular';
 
             let filtered = courses.filter(c => c.title.toLowerCase().includes(searchQuery) || c.desc.toLowerCase().includes(searchQuery) || c.category.toLowerCase().includes(searchQuery));
 
@@ -685,9 +729,11 @@
         // ================= STUDENT LEARNING DASHBOARD =================
         function renderDashboard() {
             const grid = document.getElementById('enrolled-course-grid');
+            if(!grid) return;
             const enrolledList = courses.filter(c => enrolledIds.includes(c.id));
 
-            document.getElementById('stats-enrolled-count').innerText = `${enrolledList.length} Enrolled`;
+            const countEl = document.getElementById('stats-enrolled-count');
+            if(countEl) countEl.innerText = `${enrolledList.length} Enrolled`;
 
             if(enrolledList.length === 0) {
                 grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">You haven't enrolled in any courses yet. Explore the marketplace!</div>`;
@@ -843,7 +889,6 @@
             };
 
             courses.unshift(newCourse);
-            // Creator automatically gets access to their published course
             enrolledIds.push(newCourse.id);
             saveState();
 
@@ -857,6 +902,7 @@
 
         function renderCreatorTable() {
             const tbody = document.getElementById('creator-courses-table');
+            if(!tbody) return;
             if(courses.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No courses published yet.</td></tr>`;
                 return;
@@ -874,21 +920,21 @@
                     <td class="py-3 px-4 font-extrabold text-emerald-600">$${(course.students * course.price).toFixed(2)}</td>
                     <td class="py-3 px-4 text-right">
                         <button onclick="openCoursePlayer('${course.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition">Preview</button>
-                        <button onclick="deleteCourse('${course.id}')" class="ml-1 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="confirmDeleteCourse('${course.id}')" class="ml-1 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function deleteCourse(courseId) {
-            if(confirm('Are you sure you want to delete this course?')) {
+        function confirmDeleteCourse(courseId) {
+            showCustomModal("Delete Course", "Are you sure you want to permanently delete this course?", () => {
                 courses = courses.filter(c => c.id !== courseId);
                 saveState();
                 showToast('Course removed successfully.', 'info');
                 renderMarketplace();
                 renderDashboard();
                 renderCreatorTable();
-            }
+            });
         }
     </script>
 </body>
